@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Authenticator Central - Data Intelligence</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <base target="_top">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    :root {
+      --primary-blue: #0a192f;
+      --secondary-blue: #112240;
+      --accent-blue: #64ffda;
+      --text-primary: #e6f1ff;
+      --text-secondary: #8892b0;
+      --card-bg: #112240;
+      --progress-bg: #233554;
+      --border-color: #233554;
+      --shadow-color: rgba(2, 12, 27, 0.7);
+      --success: #64ffda;
+      --warning: #f9d71c;
+      --danger: #ff6b6b;
+    }
+
+    body {
+      font-family: 'Segoe UI', 'SF Pro Display', -apple-system, BlinkMacSystemFont, sans-serif;
+      background: linear-gradient(135deg, #0a192f 0%, #112240 100%);
+      color: var(--text-primary);
+      min-height: 100vh;
+      padding: 20px;
+      line-height: 1.6;
+    }
+
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+
+    /* Header */
+    .header {
+      text-align: center;
+      padding: 30px 20px;
+      margin-bottom: 30px;
+      position: relative;
+    }
+
+    .header::after {
+      content: '';
+      position: absolute;
+      bottom: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 200px;
+      height: 4px;
+      background: linear-gradient(90deg, transparent, var(--accent-blue), transparent);
+      border-radius: 2px;
+    }
+
+    .header h1 {
+      font-size: 2.8rem;
+      font-weight: 700;
+      margin-bottom: 10px;
+      background: linear-gradient(90deg, var(--text-primary), var(--accent-blue));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      letter-spacing: 1px;
+    }
+
+    .header p {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      max-width: 600px;
+      margin: 0 auto;
+    }
+
+    /* Timer Section */
+    .timer-section {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 25px;
+      margin-bottom: 30px;
+      box-shadow: 0 10px 30px var(--shadow-color);
+      border: 1px solid var(--border-color);
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 20px;
+    }
+
+    .timer-display {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+    }
+
+    .timer-icon {
+      font-size: 2.5rem;
+      color: var(--accent-blue);
+    }
+
+    .timer-text {
+      display: flex;
+      flex-direction: column;
+    }
+
+    .timer-label {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      text-transform: uppercase;
+      letter-spacing: 1px;
+    }
+
+    .timer-count {
+      font-size: 3rem;
+      font-weight: 700;
+      font-family: 'SF Mono', 'Roboto Mono', monospace;
+      color: var(--success);
+    }
+
+    .progress-container {
+      flex-grow: 1;
+      max-width: 400px;
+    }
+
+    .progress-bar {
+      height: 12px;
+      background: var(--progress-bg);
+      border-radius: 6px;
+      overflow: hidden;
+      margin-bottom: 8px;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--accent-blue), #4dabf7);
+      border-radius: 6px;
+      width: 100%;
+      transition: width 1s linear;
+    }
+
+    .progress-text {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+    }
+
+    .last-update {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', monospace;
+      padding: 10px 20px;
+      background: rgba(17, 34, 64, 0.8);
+      border-radius: 10px;
+      border: 1px solid var(--border-color);
+    }
+
+    /* Main Grid */
+    .totp-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 25px;
+      margin-bottom: 40px;
+    }
+
+    @media (max-width: 900px) {
+      .totp-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    /* Card */
+    .totp-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 25px;
+      box-shadow: 0 10px 30px var(--shadow-color);
+      border: 1px solid var(--border-color);
+      transition: all 0.3s ease;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .totp-card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 15px 40px var(--shadow-color);
+      border-color: var(--accent-blue);
+    }
+
+    .totp-card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 4px;
+      background: linear-gradient(90deg, var(--accent-blue), transparent);
+    }
+
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 20px;
+    }
+
+    .service-info {
+      display: flex;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .service-icon {
+      width: 50px;
+      height: 50px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      background: rgba(100, 255, 218, 0.1);
+      border: 2px solid rgba(100, 255, 218, 0.3);
+    }
+
+    .service-details h3 {
+      font-size: 1.3rem;
+      font-weight: 600;
+      margin-bottom: 5px;
+      color: var(--text-primary);
+    }
+
+    .service-account {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', monospace;
+    }
+
+    .algorithm-tag {
+      font-size: 0.75rem;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-weight: 600;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+    }
+
+    .algorithm-sha1 {
+      background: rgba(77, 171, 247, 0.2);
+      color: #4dabf7;
+      border: 1px solid rgba(77, 171, 247, 0.4);
+    }
+
+    .algorithm-sha256 {
+      background: rgba(100, 255, 218, 0.2);
+      color: var(--accent-blue);
+      border: 1px solid rgba(100, 255, 218, 0.4);
+    }
+
+    /* Code Display */
+    .code-display {
+      text-align: center;
+      margin: 25px 0;
+      padding: 20px;
+      background: rgba(10, 25, 47, 0.5);
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+      position: relative;
+    }
+
+    .code-display::before {
+      content: 'CÓDIGO';
+      position: absolute;
+      top: -10px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--card-bg);
+      padding: 0 15px;
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    .code {
+      font-size: 3.2rem;
+      font-family: 'SF Mono', 'Roboto Mono', monospace;
+      font-weight: 700;
+      letter-spacing: 8px;
+      color: var(--accent-blue);
+      margin-bottom: 10px;
+      text-shadow: 0 0 10px rgba(100, 255, 218, 0.3);
+    }
+
+    .code-error {
+      color: var(--danger);
+      font-size: 1.2rem;
+      font-family: inherit;
+      letter-spacing: normal;
+    }
+
+    .code-timestamp {
+      font-size: 0.9rem;
+      color: var(--text-secondary);
+      font-family: 'SF Mono', monospace;
+      margin-top: 10px;
+    }
+
+    /* Card Footer */
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 20px;
+      padding-top: 20px;
+      border-top: 1px solid var(--border-color);
+    }
+
+    .validity {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 0.9rem;
+    }
+
+    .validity-icon {
+      color: var(--accent-blue);
+      font-size: 1.2rem;
+    }
+
+    .validity-text {
+      color: var(--text-secondary);
+    }
+
+    .validity-time {
+      font-weight: 600;
+      color: var(--success);
+      font-family: 'SF Mono', monospace;
+    }
+
+    .copy-btn {
+      background: rgba(100, 255, 218, 0.1);
+      color: var(--accent-blue);
+      border: 1px solid rgba(100, 255, 218, 0.3);
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-size: 0.9rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-family: 'SF Mono', monospace;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .copy-btn:hover {
+      background: rgba(100, 255, 218, 0.2);
+      transform: translateY(-2px);
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 25px;
+      color: var(--text-secondary);
+      font-size: 0.9rem;
+      border-top: 1px solid var(--border-color);
+      margin-top: 30px;
+    }
+
+    .footer a {
+      color: var(--accent-blue);
+      text-decoration: none;
+      transition: color 0.2s;
+    }
+
+    .footer a:hover {
+      text-decoration: underline;
+    }
+
+    /* Animations */
+    @keyframes pulse {
+      0% { opacity: 1; }
+      50% { opacity: 0.7; }
+      100% { opacity: 1; }
+    }
+
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+
+    /* Loading State */
+    .loading {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 300px;
+      grid-column: 1 / -1;
+    }
+
+    .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid var(--border-color);
+      border-top: 4px solid var(--accent-blue);
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    /* Service-specific colors */
+    .icon-google { color: #4285f4; border-color: rgba(66, 133, 244, 0.3); background: rgba(66, 133, 244, 0.1); }
+    .icon-bing { color: #008373; border-color: rgba(0, 131, 115, 0.3); background: rgba(0, 131, 115, 0.1); }
+    .icon-rdstation { color: #f26b3a; border-color: rgba(242, 107, 58, 0.3); background: rgba(242, 107, 58, 0.1); }
+    .icon-linkedin { color: #0a66c2; border-color: rgba(10, 102, 194, 0.3); background: rgba(10, 102, 194, 0.1); }
+    .icon-tiktok { color: #000000; border-color: rgba(0, 0, 0, 0.3); background: rgba(0, 0, 0, 0.1); }
+    .icon-meta { color: #0a66c2; border-color: rgba(10, 102, 194, 0.3); background: rgba(10, 102, 194, 0.1); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <!-- Header -->
+    <header class="header">
+      <h1><i class="fas fa-shield-alt"></i> Authenticator Central</h1>
+      <p>Códigos 2FA para o time de Data Intelligence - Ordem de configuração mantida</p>
+    </header>
+
+    <!-- Timer Section -->
+    <section class="timer-section">
+      <div class="timer-display">
+        <div class="timer-icon">
+          <i class="fas fa-clock"></i>
+        </div>
+        <div class="timer-text">
+          <div class="timer-label">Próxima atualização em</div>
+          <div class="timer-count" id="countdown">30</div>
+        </div>
+      </div>
+
+      <div class="progress-container">
+        <div class="progress-bar">
+          <div class="progress-fill" id="progressBar"></div>
+        </div>
+        <div class="progress-text">
+          <span>Atualizando</span>
+          <span id="progressPercent">100%</span>
+        </div>
+      </div>
+
+      <div class="last-update">
+        <i class="fas fa-sync-alt"></i> Última: <span id="lastUpdate">--:--:--</span>
+      </div>
+    </section>
+
+    <!-- TOTP Grid -->
+    <main id="totpGrid" class="totp-grid">
+      <div class="loading">
+        <div class="spinner"></div>
+      </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+      <p>
+        <i class="fas fa-lock"></i> Sistema seguro de geração de códigos 2FA | 
+        <i class="fas fa-code"></i> Desenvolvido para o time de Data Intelligence |
+        <i class="fas fa-sync-alt pulse"></i> Atualização automática a cada 30s
+      </p>
+      <p style="margin-top: 10px; font-size: 0.8rem;">
+        <i class="fas fa-info-circle"></i> Os códigos são gerados localmente e não são armazenados
+      </p>
+    </footer>
+  </div>
+
+  <script>
+    // Configuração
+    const SERVICE_ICONS = {
+      'google': { icon: 'fab fa-google', class: 'icon-google' },
+      'bing': { icon: 'fab fa-microsoft', class: 'icon-bing' },
+      'rdstation': { icon: 'fas fa-chart-line', class: 'icon-rdstation' },
+      'linkedin': { icon: 'fab fa-linkedin', class: 'icon-linkedin' },
+      'tiktok': { icon: 'fab fa-tiktok', class: 'icon-tiktok' },
+      'meta': { icon: 'fab fa-meta', class: 'icon-meta' }
+    };
+
+    // Estado global
+    let lastUpdateTime = new Date();
+    let updateTimeout = null;
+
+    // Formatação de tempo
+    function formatTime(date) {
+      return date.toLocaleTimeString('pt-BR', {
+        hour12: false,
+        hour: '2-digit',
+        minute: '2-digit',
+        second: '2-digit'
+      });
+    }
+
+    // Atualiza contador e barra de progresso
+    function updateCountdown() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const remaining = 30 - (seconds % 30);
+      const progressPercent = (remaining / 30) * 100;
+      
+      // Atualiza contador
+      document.getElementById('countdown').textContent = remaining;
+      
+      // Atualiza barra de progresso
+      document.getElementById('progressBar').style.width = `${progressPercent}%`;
+      document.getElementById('progressPercent').textContent = `${Math.round(progressPercent)}%`;
+      
+      // Muda cor conforme o tempo
+      const progressBar = document.getElementById('progressBar');
+      if (remaining <= 5) {
+        progressBar.style.background = 'linear-gradient(90deg, #ff6b6b, #ff8787)';
+      } else if (remaining <= 10) {
+        progressBar.style.background = 'linear-gradient(90deg, #f9d71c, #f9e076)';
+      } else {
+        progressBar.style.background = 'linear-gradient(90deg, #64ffda, #4dabf7)';
+      }
+      
+      return remaining;
+    }
+
+    // Determina classe do serviço
+    function getServiceClass(serviceName) {
+      const name = serviceName.toLowerCase();
+
+      if (name.includes('google')) return SERVICE_ICONS.google;
+      if (name.includes('bing')) return SERVICE_ICONS.bing;
+      if (name.includes('rdstation')) return SERVICE_ICONS.rdstation;
+      if (name.includes('linkedin')) return SERVICE_ICONS.linkedin;
+      if (name.includes('tiktok')) return SERVICE_ICONS.tiktok;
+      if (name.includes('meta') || name.includes('facebook')) return SERVICE_ICONS.meta;
+
+      return { icon: 'fas fa-key', class: '' };
+    }
+
+    // Formata o código com espaços
+    function formatCode(code) {
+      if (code.startsWith('ERRO')) return code;
+      return code.match(/.{1,3}/g).join(' ');
+    }
+
+    // Copia código para clipboard
+    function copyToClipboard(code, event) {
+      const cleanCode = code.replace(/\s/g, '');
+      navigator.clipboard.writeText(cleanCode).then(() => {
+        const btn = event.currentTarget;
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check"></i> Copiado!';
+        btn.style.background = 'rgba(76, 175, 80, 0.2)';
+        btn.style.color = '#4caf50';
+        btn.style.borderColor = 'rgba(76, 175, 80, 0.4)';
+        
+        setTimeout(() => {
+          btn.innerHTML = originalText;
+          btn.style.background = '';
+          btn.style.color = '';
+          btn.style.borderColor = '';
+        }, 2000);
+      });
+    }
+
+    // Carrega os códigos TOTP
+    function loadTOTPs() {
+      // Mostra loading
+      document.getElementById('totpGrid').innerHTML = `
+        <div class="loading">
+          <div class="spinner"></div>
+        </div>
+      `;
+      
+      google.script.run
+        .withSuccessHandler(displayTOTPs)
+        .withFailureHandler(showError)
+        .getTOTPs();
+    }
+
+    // Exibe os códigos TOTP
+    function displayTOTPs(data) {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const remaining = 30 - (seconds % 30);
+      
+      let html = '';
+      
+      data.forEach((item, index) => {
+        const isError = item.code.startsWith('ERRO');
+        const serviceInfo = getServiceClass(item.account);
+        const accountParts = item.account.split(' - ');
+        const service = accountParts[0];
+        const account = accountParts.slice(1).join(' - ');
+        
+        html += `
+          <div class="totp-card">
+            <div class="card-header">
+              <div class="service-info">
+                <div class="service-icon ${serviceInfo.class}">
+                  <i class="${serviceInfo.icon}"></i>
+                </div>
+                <div class="service-details">
+                  <h3>${service}</h3>
+                  <div class="service-account">${account || ''}</div>
+                </div>
+              </div>
+              <div class="algorithm-tag algorithm-${item.algorithm.toLowerCase()}">
+                ${item.algorithm}
+              </div>
+            </div>
+            
+            <div class="code-display">
+              <div class="code ${isError ? 'code-error' : ''}">
+                ${isError ? item.code : formatCode(item.code)}
+              </div>
+              <div class="code-timestamp">
+                <i class="far fa-clock"></i> ${formatTime(now)}
+              </div>
+            </div>
+            
+            <div class="card-footer">
+              <div class="validity">
+                <div class="validity-icon">
+                  <i class="fas fa-hourglass-half"></i>
+                </div>
+                <div class="validity-text">
+                  Válido por <span class="validity-time">${remaining}s</span>
+                </div>
+              </div>
+              
+              ${!isError ? `
+                <button class="copy-btn" onclick="copyToClipboard('${item.code}', event)">
+                  <i class="far fa-copy"></i> Copiar
+                </button>
+              ` : ''}
+            </div>
+          </div>
+        `;
+      });
+      
+      document.getElementById('totpGrid').innerHTML = html;
+      lastUpdateTime = new Date();
+      document.getElementById('lastUpdate').textContent = formatTime(lastUpdateTime);
+    }
+
+    // Exibe erro
+    function showError(error) {
+      document.getElementById('totpGrid').innerHTML = `
+        <div class="totp-card" style="grid-column: 1 / -1; text-align: center;">
+          <div class="code-display">
+            <div class="code code-error">
+              <i class="fas fa-exclamation-triangle"></i> Erro ao carregar
+            </div>
+            <div class="code-timestamp">
+              ${error.message || 'Erro desconhecido'}
+            </div>
+          </div>
+          <div class="card-footer">
+            <button class="copy-btn" onclick="loadTOTPs()" style="margin: 0 auto;">
+              <i class="fas fa-redo"></i> Tentar novamente
+            </button>
+          </div>
+        </div>
+      `;
+    }
+
+    // Agenda próxima atualização
+    function scheduleNextUpdate() {
+      const now = new Date();
+      const seconds = now.getSeconds();
+      const msToNext30s = (30 - (seconds % 30)) * 1000;
+      
+      clearTimeout(updateTimeout);
+      updateTimeout = setTimeout(() => {
+        loadTOTPs();
+        scheduleNextUpdate();
+      }, msToNext30s);
+    }
+
+    // Inicialização
+    document.addEventListener('DOMContentLoaded', () => {
+      // Primeira carga
+      loadTOTPs();
+      
+      // Atualiza contador a cada segundo
+      setInterval(updateCountdown, 1000);
+      
+      // Agenda atualizações automáticas
+      scheduleNextUpdate();
+      
+      // Atualiza quando a página ganha foco
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden) {
+          const now = new Date();
+          const timeDiff = (now - lastUpdateTime) / 1000;
+          if (timeDiff > 30) {
+            loadTOTPs();
+          }
+        }
+      });
+      
+      // Atualiza com F5
+      document.addEventListener('keydown', (e) => {
+        if (e.key === 'F5') {
+          e.preventDefault();
+          loadTOTPs();
+        }
+      });
+    });
+  </script>
+</body>
+</html>
