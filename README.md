@@ -71,8 +71,8 @@ As contas são configuradas no backend (`Code.gs`) através do array:
 ```js
 const SECRETS = [
   // [Nome exibido, Secret Base32, Algoritmo]
-  ["Google - master@empresa.com", "BASE32SECRET", 1],
-  ["Meta Ads - master@empresa.com", "BASE32SECRET", 256]
+  ["Google - teste@empresa.com", "BASE32SECRET", 1],
+  ["Meta Ads - teste@empresa.com", "BASE32SECRET", 256]
 ];
 
 
